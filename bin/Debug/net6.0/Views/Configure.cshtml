@@ -1,0 +1,25 @@
+﻿@using Nop.Plugin.Payments.LinePay.Models;
+@using Nop.Web.Framework.Models.DataTables
+@{
+    Layout = "_ConfigurePlugin";
+}
+
+@await Html.PartialAsync("Table", new DataTablesModel
+{
+    Name = "linePay-grid",
+    UrlRead = new DataUrl("RequestLinePayAsync", "PaymentLinePay"),
+    Paging = false,
+    ColumnCollection = new List<ColumnProperty>
+    {
+        new ColumnProperty(nameof(LinePayResponse.returnMessage))
+        {
+            Title = "Result",
+            Width = "100"
+        },
+        new ColumnProperty(nameof(LinePayResponse.info))
+        {
+            Title = "Details",
+            Width = "300"
+        }
+    }
+})
