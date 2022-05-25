@@ -9,11 +9,13 @@ using Nop.Core;
 using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Payments;
+using Nop.Core.Infrastructure;
 using Nop.Plugin.Payments.LinePay.Services;
 using Nop.Services.Common;
 using Nop.Services.Configuration;
 using Nop.Services.Directory;
 using Nop.Services.Localization;
+using Nop.Services.Media;
 using Nop.Services.Payments;
 using Nop.Services.Plugins;
 
@@ -21,23 +23,25 @@ namespace Nop.Plugin.Payments.LinePay
 {
     public class LinePayPlugin : BasePlugin, IPaymentMethod
     {
+        #region Fields
+
         private readonly Services.LinePay _service;
         private readonly IWebHelper _webHelper;
         private readonly ILocalizationService _localizationService;
         private readonly ISettingService _settingService;
         private readonly LinePaySettings _linePaySettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ICurrencyService _currencyService;
-        private readonly CurrencySettings _currencySettings;
-        
+
+        #endregion
+
+        #region Ctor
+
         public LinePayPlugin(Services.LinePay service,
-            IWebHelper webHelper, 
+            IWebHelper webHelper,
             ILocalizationService localizationService,
             ISettingService settingService,
             LinePaySettings linePaySettings,
-            IHttpContextAccessor httpContextAccessor,
-            ICurrencyService currencyService,
-            CurrencySettings currencySettings)
+            IHttpContextAccessor httpContextAccessor)
         {
             _service = service;
             _webHelper = webHelper;
@@ -45,9 +49,12 @@ namespace Nop.Plugin.Payments.LinePay
             _settingService = settingService;
             _linePaySettings = linePaySettings;
             _httpContextAccessor = httpContextAccessor;
-            _currencyService = currencyService;
-            _currencySettings = currencySettings;
         }
+
+        #endregion
+
+        #region BasePlugin
+
         public override string GetConfigurationPageUrl()
         {
             return _webHelper.GetStoreLocation() + "Admin/LinePayPlugin/Configure";
@@ -55,21 +62,15 @@ namespace Nop.Plugin.Payments.LinePay
 
         public override async Task InstallAsync()
         {
-            //settings
-            //await _settingService.SaveSettingAsync(new LinePaySettings
-            //{
-            //    UseSandbox = true
-            //});
-
             //locales
             await _localizationService.AddOrUpdateLocaleResourceAsync(new Dictionary<string, string>
             {
+                ["Plugins.Payments.LinePay.Fields.Picture"] = "顯示圖片",
+                ["Plugins.Payments.LinePay.Fields.Picture.Hint"] = "在LinePay付款頁面顯示的商家圖片",
                 ["Plugins.Payments.LinePay.Fields.ChannelId"] = "Channel ID",
                 ["Plugins.Payments.LinePay.Fields.ChannelId.Hint"] = "輸入Channel ID",
                 ["Plugins.Payments.LinePay.Fields.ChannelSecretKey	"] = "Channel Secret Key",
                 ["Plugins.Payments.LinePay.Fields.ChannelSecretKey.Hint"] = "輸入Channel Secret Key",
-                //["Plugins.Payments.LinePay.Fields.Currency	"] = "Currency",
-                //["Plugins.Payments.LinePay.Fields.Currency.Hint"] = "選擇使用貨幣",
                 ["Plugins.Payments.LinePay.Fields.RedirectionTip"] = "自動跳轉自LinePay頁面完成付款。",
                 ["Plugins.Payments.LinePay.Instructions"] = @"
                     <p>
@@ -83,8 +84,6 @@ namespace Nop.Plugin.Payments.LinePay
 	                    <br />
                     </p>",
                 ["Plugins.Payments.LinePay.PaymentMethodDescription"] = "前往LinePay頁面完成付款。",
-                //["Plugins.Payments.LinePay.RoundingWarning"] = "It looks like you have \"ShoppingCartSettings.RoundPricesDuringCalculation\" setting disabled. Keep in mind that this can lead to a discrepancy of the order total amount, as PayPal only rounds to two decimals.",
-
             });
 
             await base.InstallAsync();
@@ -100,6 +99,10 @@ namespace Nop.Plugin.Payments.LinePay
 
             await base.UninstallAsync();
         }
+
+        #endregion
+
+        #region IPaymentMethod
 
         /// <summary>
         /// Gets a payment method description that will be displayed on checkout pages in the public store
@@ -146,6 +149,8 @@ namespace Nop.Plugin.Payments.LinePay
                 var paymentUrl = response.info.paymentUrl.web;
                 _httpContextAccessor.HttpContext.Response.Redirect(paymentUrl);
             }
+
+            throw new NopException($"Payment.LinePay Request Error: {response.returnMessage}.");
         }
 
         /// <summary>
@@ -207,10 +212,6 @@ namespace Nop.Plugin.Payments.LinePay
                 ? (decimal?)refundPaymentRequest.AmountToRefund
                 : null;
 
-            //get the primary store currency
-            var currency = await _currencyService.GetCurrencyByIdAsync(_currencySettings.PrimaryStoreCurrencyId)
-                           ?? throw new NopException("Primary store currency cannot be loaded");
-
             var error = await _service.RefundAsync(
                 _linePaySettings, refundPaymentRequest.Order, amount);
 
@@ -222,7 +223,6 @@ namespace Nop.Plugin.Payments.LinePay
             {
                 NewPaymentStatus = refundPaymentRequest.IsPartialRefund ? PaymentStatus.PartiallyRefunded : PaymentStatus.Refunded
             };
-            //return Task.FromResult(new RefundPaymentResult { Errors = new[] { "Refund method not supported" } });
         }
 
         /// <summary>
@@ -311,6 +311,7 @@ namespace Nop.Plugin.Payments.LinePay
             return Task.FromResult(new ProcessPaymentRequest());
         }
 
+        #endregion
 
         #region Properties
 

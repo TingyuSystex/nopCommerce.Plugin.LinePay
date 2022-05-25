@@ -11,7 +11,7 @@
     <div class="cards-group">
         <div class="card card-default">
             <div class="card-body">
-                @Html.Raw(T("Plugins.Payments.LinePay.Instructions")) @*, $"{webHelper.GetStoreLocation()}Plugins/PaymentPayPalStandard/PDTHandler"))*@
+                @Html.Raw(T("Plugins.Payments.LinePay.Instructions")) 
                 
                 <div class="form-group row">
                     <div class="col-md-3">
@@ -33,19 +33,16 @@
                         <span asp-validation-for="ChannelSecretKey"></span>
                     </div>
                 </div>
-
-                @*TODO: Currency Setting - API錯誤 不支援文件上寫有支援的貨幣?!?!*@
-                @*<div class="form-group row">
+                <div class="form-group row">
                     <div class="col-md-3">
-                        <nop-override-store-checkbox asp-for="Currency_OverrideForStore" asp-input="Currency" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
-                        <nop-label asp-for="Currency"/>
+                        <nop-override-store-checkbox asp-for="PictureId_OverrideForStore" asp-input="PictureId" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
+                        <nop-label asp-for="PictureId" />
                     </div>
                     <div class="col-md-9">
-                        <nop-select asp-for="Currency" asp-items="Model.AvailableCurrencies" />
-                        <span asp-validation-for="Currency"></span>
+                        <nop-editor asp-for="PictureId" />
+                        <span asp-validation-for="PictureId"></span>
                     </div>
-                </div>*@
-                
+                </div>
 
                 <div class="form-group row">
                     <div class="col-md-9 offset-md-3">

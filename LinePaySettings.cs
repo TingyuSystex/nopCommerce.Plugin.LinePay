@@ -17,9 +17,7 @@ namespace Nop.Plugin.Payments.LinePay
         /// </summary>
         public string ChannelSecretKey { get; set; }
 
-        /// <summary>
-        /// Gets or sets Currency	
-        /// </summary>
-        //public string Currency { get; set; }
+        public int PictureId { get; set; }
+
     }
 }

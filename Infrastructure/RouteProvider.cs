@@ -23,22 +23,6 @@ namespace Nop.Plugin.Payments.LinePay.Infrastructure
             //add route for the access token callback
             //endpointRouteBuilder.MapControllerRoute("LinePayRequest", "Plugins/Payments/LinePay/",
             //    new { controller = "PaymentLinePay", action = "RequestLinePayAsync" });
-            //endpointRouteBuilder.MapControllerRoute("LinePayRequest", "Plugins.Payments/LinePay/",
-            //    new { controller = "PaymentLinePay", action = "RequestLinePayAsync" });
-            //endpointRouteBuilder.MapControllerRoute("LinePayRequest", "Plugins/Payment/LinePay/",
-            //    new { controller = "PaymentLinePay", action = "RequestLinePayAsync" });
-            //endpointRouteBuilder.MapControllerRoute("LinePayRequest", "Plugins.Payment/LinePay/",
-            //    new { controller = "PaymentLinePay", action = "RequestLinePayAsync" });
-            //endpointRouteBuilder.MapControllerRoute("LinePayRequest", "Admin/LinePayPlugin/RequestLinePayAsync/",
-            //    new { controller = "PaymentLinePay", action = "RequestLinePayAsync" });
-            //endpointRouteBuilder.MapControllerRoute("LinePayRequest", "LinePayPlugin/RequestLinePayAsync/",
-            //    new { controller = "PaymentLinePay", action = "RequestLinePayAsync" });
-            //endpointRouteBuilder.MapControllerRoute("CustomersDistributionByCountry", "Plugins/Payments/CustomerDistByCountry/",
-            //    new { controller = "PaymentLinePay", action = "RequestLinePayAsync" });
-            //endpointRouteBuilder.MapControllerRoute("CustomersDistributionByCountry", "Plugins/Payment/CustomerDistByCountry/",
-            //    new { controller = "PaymentLinePay", action = "RequestLinePayAsync" });
-            //endpointRouteBuilder.MapControllerRoute("CustomersDistributionByCountry", "Plugins/Tutorial/CustomerDistByCountry/",
-            //    new { controller = "PaymentLinePay", action = "RequestLinePayAsync" });
         }
 
         /// <summary>

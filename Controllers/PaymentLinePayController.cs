@@ -14,6 +14,7 @@ using Nop.Plugin.Payments.LinePay.Services;
 using Nop.Services.Configuration;
 using Nop.Services.Localization;
 using Nop.Services.Logging;
+using Nop.Services.Media;
 using Nop.Services.Messages;
 using Nop.Services.Orders;
 using Nop.Services.Security;
@@ -30,6 +31,8 @@ namespace Nop.Plugin.Payments.LinePay.Controllers
     [Area(AreaNames.Admin)] //specifies the area containing a controller or action
     public class LinePayPluginController : BasePaymentController
     {
+        #region Fields
+
         private readonly Services.LinePay _service;
         private readonly ISettingService _settingService;
         private readonly IStoreContext _storeContext;
@@ -37,13 +40,20 @@ namespace Nop.Plugin.Payments.LinePay.Controllers
         private readonly ILocalizationService _localizationService;
         private readonly INotificationService _notificationService;
         private readonly IOrderService _orderService;
+        private readonly IPictureService _pictureService;
+
+        #endregion
+
+        #region Ctor
+
         public LinePayPluginController(Services.LinePay service,
             ISettingService settingService,
             IStoreContext storeContext,
             IPermissionService permissionService,
             ILocalizationService localizationService,
             INotificationService notificationService,
-            IOrderService orderService)
+            IOrderService orderService,
+            IPictureService pictureService)
         {
             _service = service;
             _settingService = settingService;
@@ -52,7 +62,12 @@ namespace Nop.Plugin.Payments.LinePay.Controllers
             _localizationService = localizationService;
             _notificationService = notificationService;
             _orderService = orderService;
+            _pictureService = pictureService;
         }
+
+        #endregion
+
+        #region Methods
 
         public async Task<IActionResult> Configure()
         {
@@ -68,22 +83,15 @@ namespace Nop.Plugin.Payments.LinePay.Controllers
                 ChannelId = linePaySettings.ChannelId,
                 ChannelSecretKey = linePaySettings.ChannelSecretKey,
                 ActiveStoreScopeConfiguration = storeScope,
-                //Currency = linePaySettings.Currency
+                PictureId = linePaySettings.PictureId
             };
-
-            //model.AvailableCurrencies = (new List<SelectListItem>()
-            //{
-            //    new SelectListItem(){ Text = "USD", Value = "USD"},
-            //    new SelectListItem(){ Text = "JPY", Value = "JPY"},
-            //    new SelectListItem(){ Text = "TWD", Value = "TWD"},
-            //    new SelectListItem(){ Text = "THB", Value = "THB"}
-            //});
 
             if (storeScope <= 0)
                 return View("~/Plugins/Payments.LinePay/Views/Configure.cshtml", model);
 
             model.ChannelId_OverrideForStore = await _settingService.SettingExistsAsync(linePaySettings, x => x.ChannelId, storeScope);
             model.ChannelSecretKey_OverrideForStore = await _settingService.SettingExistsAsync(linePaySettings, x => x.ChannelSecretKey, storeScope);
+            model.PictureId_OverrideForStore = await _settingService.SettingExistsAsync(linePaySettings, x => x.PictureId, storeScope);
 
             return View("~/Plugins/Payments.LinePay/Views/Configure.cshtml", model);
         }
@@ -100,22 +108,33 @@ namespace Nop.Plugin.Payments.LinePay.Controllers
             //load settings for a chosen store scope
             var storeScope = await _storeContext.GetActiveStoreScopeConfigurationAsync();
             var linePaySettings = await _settingService.LoadSettingAsync<LinePaySettings>(storeScope);
+            var previousPicture = linePaySettings.PictureId;
 
             //save settings
-            //linePaySettings.Currency = model.Currency;
             linePaySettings.ChannelId = model.ChannelId;
             linePaySettings.ChannelSecretKey = model.ChannelSecretKey;
+            linePaySettings.PictureId = model.PictureId;
 
             /* We do not clear cache after each setting update.
              * This behavior can increase performance because cached settings will not be cleared 
              * and loaded from database after each update */
-            //await _settingService.SaveSettingOverridablePerStoreAsync(linePaySettings, x => x.Currency, model.ChannelId_OverrideForStore, storeScope, false);
             await _settingService.SaveSettingOverridablePerStoreAsync(linePaySettings, x => x.ChannelId, model.ChannelId_OverrideForStore, storeScope, false);
             await _settingService.SaveSettingOverridablePerStoreAsync(linePaySettings, x => x.ChannelSecretKey, model.ChannelSecretKey_OverrideForStore, storeScope, false);
+            await _settingService.SaveSettingOverridablePerStoreAsync(linePaySettings, x => x.PictureId, model.PictureId_OverrideForStore, storeScope, false);
 
             //now clear settings cache
             await _settingService.ClearCacheAsync();
 
+            var currentPicture = linePaySettings.PictureId;
+
+            //delete an old picture (if deleted or updated)
+            if (previousPicture != currentPicture)
+            {
+                var oldPicture = await _pictureService.GetPictureByIdAsync(previousPicture);
+                if (oldPicture != null)
+                    await _pictureService.DeletePictureAsync(oldPicture);
+            }
+            
             _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.Plugins.Saved"));
 
             return await Configure();
@@ -134,7 +153,7 @@ namespace Nop.Plugin.Payments.LinePay.Controllers
                 await _orderService.InsertOrderNoteAsync(new OrderNote
                 {
                     OrderId = order.Id,
-                    Note = "Payment.LinePay Response: " + confirm.returnMessage,
+                    Note = $"Payment.LinePay Response: {confirm.returnMessage}",
                     DisplayToCustomer = false,
                     CreatedOnUtc = DateTime.UtcNow
                 });
@@ -150,14 +169,14 @@ namespace Nop.Plugin.Payments.LinePay.Controllers
                 await _orderService.UpdateOrderAsync(order);
 
                 return RedirectToRoute("CheckoutCompleted", new { orderId = order.Id });
-
-                //return View("~/Plugins/Payments.LinePay/Views/Test.cshtml", confirm);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex);
             }
         }
+
+        #endregion
 
     }
 }

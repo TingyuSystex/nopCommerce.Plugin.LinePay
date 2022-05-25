@@ -23,7 +23,7 @@ namespace Nop.Plugin.Payments.LinePay.Models
         public List<ConfirmPayInfo> payInfo { get; set; }
         public List<ConfirmPackages> packages { get; set; }
 
-        //TODO: 還有一堆merchantReference跟shipping的欄位先跳過
+        //TODO: 還有一堆merchantReference跟shipping的欄位不會用到先跳過
     }
 
     public record ConfirmPayInfo

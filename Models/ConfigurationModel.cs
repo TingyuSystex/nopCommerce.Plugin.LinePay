@@ -19,10 +19,10 @@ namespace Nop.Plugin.Payments.LinePay.Models
         public string ChannelSecretKey { get; set; }
         public bool ChannelSecretKey_OverrideForStore { get; set; }
 
-        //[NopResourceDisplayName("Plugins.Payments.LinePay.Fields.Currency")]
-        //public string Currency { get; set; }
-        //public IList<SelectListItem> AvailableCurrencies { get; set; }
-        //public bool Currency_OverrideForStore { get; set; }
+        [NopResourceDisplayName("Plugins.Payments.LinePay.Fields.Picture")]
+        [UIHint("Picture")]
+        public int PictureId { get; set; }
+        public bool PictureId_OverrideForStore { get; set; }
 
     }
 }
